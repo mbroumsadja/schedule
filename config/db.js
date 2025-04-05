@@ -15,7 +15,7 @@ const sequelize = new Sequelize(process.env.db_url, {
       rejectUnauthorized: false
     },
   },
-  logging: true
+  logging: false
 });
 
 sequelize.authenticate()

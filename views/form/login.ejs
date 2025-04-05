@@ -34,7 +34,7 @@
         const matricule = document.getElementById('matricule').value;
 
         try {
-            const response = await fetch(`http://localhost:3001/login/${matricule}`, {
+            const response = await fetch(`https://schedule-f4cv.onrender.com//login/${matricule}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             });

@@ -96,7 +96,7 @@
             // Fonction pour récupérer les données de l'emploi du temps depuis l'API
             async function fetchScheduleData() {
                 try {
-                    const response = await fetch(`http://localhost:3001/seance/${matricule}`, {
+                    const response = await fetch(`https://schedule-f4cv.onrender.com//seance/${matricule}`, {
                         method: 'GET',
                         headers: { 'Content-Type': 'application/json' }
                     });
@@ -128,7 +128,7 @@
             // Fonction pour récupérer les messages depuis l'API
             async function fetchMessages() {
                 try {
-                    const response = await fetch(`http://localhost:3001/message/${matricule}`, {
+                    const response = await fetch(`https://schedule-f4cv.onrender.com//message/${matricule}`, {
                         method: 'GET',
                         headers: { 'Content-Type': 'application/json' }
                     });
@@ -149,7 +149,7 @@
             // Fonction pour envoyer un message
             async function sendMessage(message) {
                 try {
-                    const response = await fetch('http://localhost:3001/messages', {
+                    const response = await fetch('https://schedule-f4cv.onrender.com//messages', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ matricule, message })

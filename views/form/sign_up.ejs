@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/img/Fichier 4.svg" type="image/x-icon">
+    <link rel="stylesheet" href="css/style.css">
+    <title>schedule -sign_up</title>
+</head>
+<body>
+    <div class="containers">
+            <div class="message" id="message"></div>
+<form action="/sign_up" method="post">
+    <div class="title">signup to schedule</div>
+    <div class="inputs">
+     <input type="text" name="matricule" id="matricule" placeholder="Matricule: XX-XXX-XXXXXXXX"  required>
+     <input type="text" name="nom" id="nom" placeholder="Nom:  John" required>
+     <input type="text" name="prenom" id="prenom" placeholder="Prenom:  Maurice" required>
+     <input type="tel" name="numero" id="numero" placeholder="Numero: 6XXXXXXXX" required>
+     <input type="text" name="filiere" id="filiere" placeholder="Filiere: informatique" required>
+     <input type="email" name="email" id="email" placeholder="Email: example@gmail.com" required>
+    </div>
+    <button type="submit"><span>enregistre</span></button>
+    <div class="sign">
+     i don't have already account! <a href="/login">login</a>
+    </div>
+</form>
+    </div>
+    <script>
+        const message = document.getElementById('message');
+        message.textContent ="WELCOM";
+        document.addEventListener('DOMContentLoaded', () => {
+    const form = document.querySelector('form');
+    const message = document.getElementById('message');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const matricule = document.getElementById('matricule').value;
+        const nom = document.getElementById('nom').value;
+        const prenom = document.getElementById('prenom').value;
+        const numero = document.getElementById('numero').value;
+        const filiere = document.getElementById('filiere').value;
+        const email = document.getElementById('email').value;
+
+        const userData = { matricule, nom, prenom, numero, filiere, email };
+
+        try {
+            const response = await fetch('http://localhost:3001/sign_up', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(userData)
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                // Stocker le matricule dans localStorage
+                localStorage.setItem('matricule', matricule);
+                message.textContent = data.message; // Ex. : "✅ Register successful!!"
+                // Rediriger vers la page principale
+                setTimeout(() => window.location.href = '/', 1000);
+            } else {
+                message.textContent = data.message; // Ex. : "❌ Ce matricule existe déjà"
+            }
+        } catch (error) {
+            message.textContent = 'Erreur réseau. Veuillez réessayer.';
+            console.error('Erreur:', error);
+        }
+    });
+});
+    </script>
+</body>
+</html>

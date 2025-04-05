@@ -1,0 +1,158 @@
+*{
+    margin: 0;
+    padding: 0;
+    font-family: "Graduate", "Times New Roman", Verdana;
+    cursor: pointer;
+    font-size: 18px;
+}
+@font-face {
+	font-family: 'Graduate';
+	font-style: normal;
+	font-weight: 400;
+	src: local('Graduate'),
+		local('Graduate-Regular'),
+		url(/fonts/graduate.eot) format('embedded-opentype'),
+		url(/fonts/graduate.ttf) format('truetype'),
+		url(/fonts/graduate.woff) format('woff');
+}
+body{background: whitesmoke;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    font: normal Helvetica, Arial, sans-serif;
+}
+.container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    overflow-x: hidden;
+    gap: 1rem;
+    height: 20rem;
+}
+.message{
+    position: absolute;
+    top: 0;
+ border-radius: 0 0 20px 20px;
+   width: 20rem;
+   box-shadow: 0px 5px 10px gainsboro;
+   text-align: center;
+   padding: .5rem 0;
+   color: rgb(0, 145, 255);
+   letter-spacing: 2px;
+   font-weight: 900;
+}
+.title{
+ font-size: 1.5rem;
+ font-weight: 600;
+ letter-spacing: 1px;
+ color: hsl(209, 100%, 50%);
+margin-bottom: 2rem;
+margin-top: 1rem;
+font-family: "Graduate", "Times New Roman", Verdana;
+}
+
+form{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0rem 1rem;
+    margin-top: 2rem;
+    box-sizing: border-box;
+    box-shadow: 0px 5px 10px gainsboro;
+    border-radius: 20px;
+    padding: 1rem;
+}
+.inputs{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 1rem;
+}
+.inputs input{
+    border: none;
+    border-radius: 10px;
+    font-size: 12px;
+    padding: .8rem 1rem;
+    width: 77vw;
+}
+input:focus{
+    outline: none;
+    background: white;
+}
+button{
+    padding: .5rem 6.5rem;
+    border: none;
+    border-radius: 5px;
+    background:  rgb(0, 132, 255);
+    margin-bottom: 1rem;
+    margin-top: 2rem;
+
+}
+button span{
+    font-size: 16px;
+    color: white;
+    letter-spacing: 1px;
+}
+span{
+    font-size: 15px;
+}
+.sign{
+    margin-top:1rem;
+    font-size: 15px;
+}
+.afficheur{
+    height: 98%;
+    width: 90%;
+    border-radius:10px;
+    box-shadow: 0px 5px 20px gainsboro;
+    padding:  1rem .5rem;
+    overflow-y: scroll;
+    margin-top: 2rem;
+}
+.containers{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    overflow-x: hidden;
+    height: 90vh;
+    width: 98vw;
+}
+.btn{
+    border-radius: 50%;
+    height: 32px;
+    width: 32px;
+}
+.reponse{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 94%;
+    gap: .2rem;
+}
+.reponse input{
+    width: 98%;
+    font-size: 15px;
+    padding: 1rem .5rem;
+    border-radius: 5px;
+    border: none;
+    background: white;
+    box-shadow: 0px 5px 20px gainsboro;
+}
+.question{
+    margin: 1rem;
+    text-align: start;
+  color: rgb(3, 206, 81);
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 20px;
+}
+.answer{
+    margin-top: 1rem;
+    text-align: end;
+}

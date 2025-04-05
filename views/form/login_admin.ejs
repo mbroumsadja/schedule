@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/img/Fichier 4.svg" type="image/x-icon">
+    <link rel="stylesheet" href="css/admin.css">
+    <title>schedule -login|admin</title>
+</head>
+<body>
+    <div class="container">
+        <form id="forms">
+            <div class="message" id="message"></div>
+            <div class="title">Login to schedule</div>
+           <div class="inputs">
+             <input type="email" name="email" id="email" placeholder="Email:" required>
+             <input type="password" name="password" id="password" placeholder="Password:" required maxlength="20">
+           </div>
+           <div class="sign">
+            i don't have already account! <a href="/sign_up_admin">signup</a>
+           </div>
+           <button type="submit"><span>login</span></button>
+        </form>
+        <span>or go on with</span>
+        <div class="api_login">
+         <img src="" alt="" srcset="" width="70" height="70">
+         <img src="" alt="" srcset="" width="70" height="70">
+         <img src="" alt="" srcset="" width="70" height="70">
+         <img src="" alt="" srcset="" width="70" height="70">
+        </div>
+    </div>
+    <script>
+        const message = document.getElementById('message');
+        message.textContent ="WELCOM"
+const forms  = document.getElementById('forms')
+        forms.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const data = {
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value,
+        };
+        
+        try {
+            const response = await fetch('http://localhost:3001/login_admin', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            if (!result.success) {
+                alert(result.message);
+            }
+            message.textContent = result.message
+            window.location.href = '/admin_seance'
+            return
+        } catch (error) {
+            console.error('Erreur:', error);
+            alert('Erreur lors de la création de la séance.');
+        }
+    })
+    </script>
+</body>
+</html>

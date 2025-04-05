@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="shortcut icon" href="/img/Fichier 4.svg" type="image/x-icon">
+    <title>Schedule</title>
+</head>
+<body>
+    <header>   
+        <button type="button" id="weekView">
+            <i class="fas fa-calendar-week"></i>
+        </button>
+        <button type="button" id="refreshBtn">
+            <i class="fas fa-sync-alt"></i>
+        </button>
+        <div class="header-title">Schedule</div>
+    </header>
+
+    <div class="pull-indicator" id="pullIndicator">
+        <i class="fas fa-arrow-down"></i> &nbsp; Tirez pour actualiser
+    </div>
+
+    <div class="date-navigator" id="dateNavigator">
+        <!-- Les dates seront générées dynamiquement -->
+    </div>
+
+    <div class="search-container">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Rechercher un cours, un prof..." id="searchInput">
+        </div>
+    </div>
+
+    <div class="container" id="mainContainer">
+        <!-- Le contenu sera généré dynamiquement selon l'onglet actif -->
+    </div>
+
+    <div class="tab-bar">
+        <button class="tab-item active" id="scheduleTab">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Cours</span>
+        </button>
+        <button class="tab-item" id="messageTab">
+            <i class="fas fa-envelope"></i>
+            <span>Message</span>
+        </button>
+        <button class="tab-item" id="profileTab">
+            <i class="fas fa-user"></i>
+            <span>Profil</span>
+        </button>
+    </div>
+
+    <script>
+        // Fonction pour récupérer un cookie par son nom
+        function getCookie() {
+            const name = "etudiant";
+            const value = `${document.cookie}`;
+            const parts = value.split(';').find(part => part.trim().startsWith(`${name}=`));
+            if (parts) return parts.split('=')[1];
+            return null;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Récupérer le cookie étudiant
+            const studentCookie = getCookie();
+            const matricule = studentCookie;
+
+            if (!matricule) {
+                window.location.href = '/login';
+                return;
+            }
+
+            const mainContainer = document.getElementById('mainContainer');
+            const dateNavigator = document.getElementById('dateNavigator');
+            const searchInput = document.getElementById('searchInput');
+            const scheduleTab = document.getElementById('scheduleTab');
+            const messageTab = document.getElementById('messageTab');
+            const profileTab = document.getElementById('profileTab');
+            const tabItems = document.querySelectorAll('.tab-item');
+            const pullIndicator = document.getElementById('pullIndicator');
+            let scheduleData = [];
+            let messageData = [];
+            let currentTab = 'schedule';
+            let userData = {
+                nom: 'Nom de l\'étudiant',
+                prenom: 'Prénom',
+                matricule: matricule,
+                email: 'etudiant@example.com',
+                filiere: 'Filiere',
+                niveau: 'Niveau'
+            };
+
+            // Fonction pour récupérer les données de l'emploi du temps depuis l'API
+            async function fetchScheduleData() {
+                try {
+                    const response = await fetch(`http://localhost:3001/seance/${matricule}`, {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    if (!response.ok) throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+                    const data = await response.json();
+                    if (data.success) {
+                        scheduleData = data.seances.map(course => ({
+                            ...course,
+                            jourSemaine: formatDateToDay(course.jour),
+                            debut: course.debut.replace(':', 'h'),
+                            fin: course.fin.replace(':', 'h')
+                        }));
+                        return scheduleData;
+                    } else {
+                        throw new Error(data.message || 'Erreur lors de la récupération des données');
+                    }
+                } catch (error) {
+                    console.error('Erreur API:', error);
+                    mainContainer.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>Erreur: ${error.message}. Veuillez réessayer.</p>
+                        </div>
+                    `;
+                    return [];
+                }
+            }
+
+            // Fonction pour récupérer les messages depuis l'API
+            async function fetchMessages() {
+                try {
+                    const response = await fetch(`http://localhost:3001/message/${matricule}`, {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    if (!response.ok) throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+                    const data = await response.json();
+                    if (data.success) {
+                        messageData = data.messages || [];
+                        return messageData;
+                    } else {
+                        throw new Error(data.message || 'Erreur lors de la récupération des messages');
+                    }
+                } catch (error) {
+                    console.error('Erreur API Messages:', error);
+                    return [];
+                }
+            }
+
+            // Fonction pour envoyer un message
+            async function sendMessage(message) {
+                try {
+                    const response = await fetch('http://localhost:3001/messages', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ matricule, message })
+                    });
+                    if (!response.ok) throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+                    const data = await response.json();
+                    if (data.success) {
+                        await fetchMessages();
+                        renderMessages();
+                        return true;
+                    } else {
+                        throw new Error(data.message || 'Erreur lors de l\'envoi du message');
+                    }
+                } catch (error) {
+                    console.error('Erreur envoi message:', error);
+                    return false;
+                }
+            }
+
+            // Formater la date en jour de la semaine
+            function formatDateToDay(dateString) {
+                const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+                const months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+                const [day, month, year] = dateString.split('-');
+                const date = new Date(year, month - 1, day);
+                return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]}`;
+            }
+
+            // Formater la date pour l'API (DD-MM-YYYY)
+            function formatDateForAPI(date) {
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}-${month}-${year}`;
+            }
+
+            // Générer le navigateur de dates
+            function generateDateNavigator() {
+                const days = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+                const today = new Date();
+                dateNavigator.innerHTML = '';
+                for (let i = -2; i < 12; i++) {
+                    const date = new Date(today);
+                    date.setDate(today.getDate() + i);
+                    const dateItem = document.createElement('div');
+                    dateItem.className = 'date-item';
+                    if (i === 0) dateItem.classList.add('active');
+                    dateItem.innerHTML = `
+                        <div class="date-day">${days[date.getDay()]}</div>
+                        <div class="date-number">${date.getDate()}</div>
+                    `;
+                    dateItem.addEventListener('click', () => {
+                        document.querySelectorAll('.date-item').forEach(item => item.classList.remove('active'));
+                        dateItem.classList.add('active');
+                        const selectedDate = formatDateForAPI(date);
+                        const filteredData = scheduleData.filter(item => item.jour === selectedDate);
+                        renderSchedule(filteredData);
+                    });
+                    dateNavigator.appendChild(dateItem);
+                }
+            }
+
+            // Afficher l'emploi du temps
+            function renderSchedule(data) {
+                mainContainer.innerHTML = '';
+                if (!data || data.length === 0) {
+                    mainContainer.innerHTML = `
+                        <div class="empty-state">
+                            <i class="far fa-calendar-times"></i>
+                            <p>Aucun cours prévu pour cette période</p>
+                        </div>
+                    `;
+                    return;
+                }
+                const coursesByDay = {};
+                data.forEach(course => {
+                    if (!coursesByDay[course.jourSemaine]) coursesByDay[course.jourSemaine] = [];
+                    coursesByDay[course.jourSemaine].push(course);
+                });
+                Object.keys(coursesByDay).forEach(day => {
+                    coursesByDay[day].sort((a, b) => convertTimeToMinutes(a.debut) - convertTimeToMinutes(b.debut));
+                });
+                for (const [day, courses] of Object.entries(coursesByDay)) {
+                    const daySection = document.createElement('div');
+                    daySection.className = 'day-section';
+                    const dayHeader = document.createElement('h3');
+                    dayHeader.className = 'day-header';
+                    dayHeader.textContent = day;
+                    daySection.appendChild(dayHeader);
+                    courses.forEach(course => {
+                        const courseCard = document.createElement('div');
+                        courseCard.className = 'course-card';
+                        let periode = null;
+                        if (course.debut === "07h30" && course.fin === "11h30") periode = "Matinée";
+                        if (course.debut === "11h30" || course.debut === "13h30") periode = "Soirée";
+                        if (course.debut === "07h30" && course.fin === "16h30") periode = "Journée";
+                        courseCard.innerHTML = `
+                            <div class="course-header">
+                                <div class="course-name">${course.cours}</div>
+                                <div class="course-time">${course.debut} - ${course.fin}</div>
+                            </div>
+                            <div class="course-details">
+                                <div class="details">
+                                    <div class="detail-item">
+                                        <i class="fas fa-user-tie"></i>
+                                        <span>${course.enseignant}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span>${course.lieu}</span>
+                                    </div>
+                                </div>
+                                <div class="periode">${periode || ''}</div>
+                            </div>
+                        `;
+                        daySection.appendChild(courseCard);
+                    });
+                    mainContainer.appendChild(daySection);
+                }
+                const lastUpdate = new Date().toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                const updateInfo = document.createElement('p');
+                updateInfo.className = 'refresh-hint';
+                updateInfo.textContent = `Mis à jour: ${lastUpdate}`;
+                mainContainer.appendChild(updateInfo);
+            }
+
+            // Convertir l'heure en minutes pour le tri
+            function convertTimeToMinutes(timeStr) {
+                const [hours, minutes] = timeStr.replace('h', ':').split(':');
+                return parseInt(hours) * 60 + parseInt(minutes || 0);
+            }
+
+            // Afficher les messages
+            function renderMessages() {
+                mainContainer.innerHTML = `
+                    <div class="message-container" id="messageContainer">
+                        <div class="message-header">
+                            <div class="message-title">Assistance</div>
+                        </div>
+                    </div>
+                    <div class="message-input-container">
+                        <input type="text" placeholder="Posez votre question..." class="message-input" id="messageInput">
+                        <button class="send-button" id="sendButton">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                `;
+                const messageContainer = document.getElementById('messageContainer');
+                if (!messageData || messageData.length === 0) {
+                    messageContainer.innerHTML += `
+                        <div class="empty-messages">
+                            <i class="far fa-comment-dots"></i>
+                            <p>Aucun message pour le moment.<br>Posez une question pour commencer.</p>
+                        </div>
+                    `;
+                } else {
+                    const sortedMessages = [...messageData].sort((a, b) => new Date(a.date) - new Date(b.date));
+                    let currentDate = null;
+                    sortedMessages.forEach(message => {
+                        const messageDate = formatDate(message.date);
+                        if (messageDate !== currentDate) {
+                            messageContainer.innerHTML += `<div class="date-separator">${messageDate}</div>`;
+                            currentDate = messageDate;
+                        }
+                        const bubbleClass = message.fromUser ? 'message-user' : 'message-admin';
+                        const messageTime = formatTime(message.date);
+                        messageContainer.innerHTML += `
+                            <div class="message-bubble ${bubbleClass}">
+                                ${message.content}
+                                <div class="message-time">${messageTime}</div>
+                            </div>
+                        `;
+                    });
+                }
+                setTimeout(() => messageContainer.scrollTop = messageContainer.scrollHeight, 100);
+                const messageInput = document.getElementById('messageInput');
+                const sendButton = document.getElementById('sendButton');
+                sendButton.addEventListener('click', async () => {
+                    const message = messageInput.value.trim();
+                    if (message) {
+                        messageInput.value = '';
+                        const currentTime = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                        messageContainer.innerHTML += `
+                            <div class="message-bubble message-user">
+                                ${message}
+                                <div class="message-time">${currentTime}</div>
+                            </div>
+                        `;
+                        messageContainer.scrollTop = messageContainer.scrollHeight;
+                        await sendMessage(message);
+                    }
+                });
+                messageInput.addEventListener('keypress', async (e) => {
+                    if (e.key === 'Enter') {
+                        const message = messageInput.value.trim();
+                        if (message) {
+                            messageInput.value = '';
+                            await sendMessage(message);
+                        }
+                    }
+                });
+            }
+
+            // Afficher le profil
+            function renderProfile() {
+                mainContainer.innerHTML = `
+                    <div class="profile-container">
+                        <div class="profile-photo">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="profile-name">${userData.prenom} ${userData.nom}</div>
+                        <div class="profile-info">${userData.filiere} - ${userData.niveau}</div>
+                        <div class="profile-section">
+                            <div class="profile-section-title">Informations personnelles</div>
+                            <div class="profile-item">
+                                <div class="profile-item-label">Matricule</div>
+                                <div class="profile-item-value">${userData.matricule}</div>
+                            </div>
+                            <div class="profile-item">
+                                <div class="profile-item-label">Email</div>
+                                <div class="profile-item-value">${userData.email}</div>
+                            </div>
+                            <div class="profile-item">
+                                <div class="profile-item-label">Filière</div>
+                                <div class="profile-item-value">${userData.filiere}</div>
+                            </div>
+                            <div class="profile-item">
+                                <div class="profile-item-label">Niveau</div>
+                                <div class="profile-item-value">${userData.niveau}</div>
+                            </div>
+                        </div>
+                        <button class="profile-button" id="updateProfileBtn">Modifier le profil</button>
+                        <button class="profile-button logout-button" id="logoutBtn">Se déconnecter</button>
+                    </div>
+                `;
+                document.getElementById('logoutBtn').addEventListener('click', () => {
+                    document.cookie = "etudiant=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    window.location.href = '/login';
+                });
+            }
+
+            // Formater la date pour les messages
+            function formatDate(dateString) {
+                return new Date(dateString).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            }
+
+            // Formater l'heure pour les messages
+            function formatTime(dateString) {
+                return new Date(dateString).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            }
+
+            // Recherche dans l'emploi du temps
+            searchInput.addEventListener('input', () => {
+                if (currentTab === 'schedule') {
+                    const searchTerm = searchInput.value.toLowerCase();
+                    const filteredData = scheduleData.filter(item =>
+                        item.cours.toLowerCase().includes(searchTerm) ||
+                        item.enseignant.toLowerCase().includes(searchTerm) ||
+                        item.lieu.toLowerCase().includes(searchTerm)
+                    );
+                    renderSchedule(filteredData);
+                }
+            });
+
+            // Gestion des onglets
+            function switchTab(tab) {
+                tabItems.forEach(item => item.classList.remove('active'));
+                document.getElementById(`${tab}Tab`).classList.add('active');
+                searchInput.style.display = tab === 'schedule' ? 'block' : 'none';
+                dateNavigator.style.display = tab === 'schedule' ? 'flex' : 'none';
+                switch (tab) {
+                    case 'schedule':
+                        renderSchedule(scheduleData);
+                        break;
+                    case 'message':
+                        fetchMessages().then(() => renderMessages());
+                        break;
+                    case 'profile':
+                        renderProfile();
+                        break;
+                }
+                currentTab = tab;
+            }
+
+            scheduleTab.addEventListener('click', () => switchTab('schedule'));
+            messageTab.addEventListener('click', () => switchTab('message'));
+            profileTab.addEventListener('click', () => switchTab('profile'));
+
+            // Pull-to-refresh
+            let startY, currentY;
+            document.addEventListener('touchstart', e => {
+                if (window.scrollY === 0) startY = e.touches[0].clientY;
+            });
+            document.addEventListener('touchmove', e => {
+                if (startY && window.scrollY === 0) {
+                    currentY = e.touches[0].clientY;
+                    const diff = currentY - startY;
+                    if (diff > 30) pullIndicator.classList.add('visible');
+                    else pullIndicator.classList.remove('visible');
+                }
+            });
+            document.addEventListener('touchend', async () => {
+                if (pullIndicator.classList.contains('visible')) {
+                    pullIndicator.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:50px;color:#2196F3"></i>';
+                    if (currentTab === 'schedule') {
+                        const updatedData = await fetchScheduleData();
+                        setTimeout(() => {
+                            pullIndicator.classList.remove('visible');
+                            pullIndicator.innerHTML = '<i class="fas fa-arrow-down"></i> Tirez pour actualiser';
+                            renderSchedule(updatedData);
+                        }, 1500);
+                    } else if (currentTab === 'message') {
+                        await fetchMessages();
+                        setTimeout(() => {
+                            pullIndicator.classList.remove('visible');
+                            pullIndicator.innerHTML = '<i class="fas fa-arrow-down"></i> Tirez pour actualiser';
+                            renderMessages();
+                        }, 1500);
+                    }
+                }
+                startY = null;
+            });
+
+            // Gestion de la vue semaine et refresh
+            document.getElementById('weekView').addEventListener('click', () => {
+                if (currentTab === 'schedule') renderSchedule(scheduleData);
+            });
+            document.getElementById('refreshBtn').addEventListener('click', async () => {
+                if (currentTab === 'schedule') {
+                    const updatedData = await fetchScheduleData();
+                    renderSchedule(updatedData);
+                } else if (currentTab === 'message') {
+                    await fetchMessages();
+                    renderMessages();
+                }
+            });
+
+            // Initialisation
+            async function init() {
+                const data = await fetchScheduleData();
+                generateDateNavigator();
+                renderSchedule(data);
+            }
+            init();
+        });
+    </script>
+</body>
+</html>

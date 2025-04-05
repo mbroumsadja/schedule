@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/img/Fichier 4.svg" type="image/x-icon">
+    <link rel="stylesheet" href="css/admin.css">
+    <title>schedule -sign_up|admin</title>
+</head>
+<body>
+    <div class="container">
+        <div class="message" id="message"></div>
+        <form action="/sign_up_admin" method="post">
+            <div class="title">Signup to schedule</div>
+           <div class="inputs" id="inputs">
+            <input type="text" name="nom" id="nom" placeholder="Nom:  John" required>
+            <input type="text" name="prenom" id="prenom" placeholder="Prenom:  Steave" required>
+            <input type="tel" name="numero" id="numero" placeholder="numero:  699999999" required>
+            <input type="email" name="email" id="email" placeholder="Email: example@gmail.com" required>
+            <input type="password" name="password" id="password" placeholder="Password:  XXXXXXXXXXXXXXXX" required>
+           </div>
+           <div class="sign">
+            i have already account! <a href="/login_admin">login</a>
+           </div>
+           <button type="submit" id="continuer"><span>enregistre</span></button>
+        </form>
+        <span>or go on with</span>
+           <div class="api_login">
+            <img src="" alt="" srcset="" width="70" height="70">
+            <img src="" alt="" srcset="" width="70" height="70">
+            <img src="" alt="" srcset="" width="70" height="70">
+            <img src="" alt="" srcset="" width="70" height="70">
+           </div>
+    </div>
+    <script>
+        const inputs = document.getElementsByTagName('input');
+        const continuer = document.getElementById('continuer');
+        continuer.addEventListener('click',()=>{
+           
+        });
+        const message = document.getElementById('message');
+        message.textContent ="WELCOM"
+    </script>
+</body>
+</html>

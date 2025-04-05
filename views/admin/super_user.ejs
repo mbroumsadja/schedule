@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="shortcut icon" href="/img/Fichier 4.svg" type="image/x-icon">
+    <title>Schedule - Gestion des Séances</title>
+    <style>
+.header-title{
+    margin-right: .2rem;
+}
+    .seances-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 60px;
+}
+
+.seance-item {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.seance-info {
+    flex: 1;
+}
+
+.seance-actions{
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    gap: .5rem;
+}
+
+.seance-actions button {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    margin-left: 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.seance-actions button:nth-child(2){
+    background: rgba(255, 0, 0, 0.493);
+}
+.seance-actions button:hover {
+    background: var(--primary-dark);
+}
+
+.add-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    height: 3rem;
+    width: 3rem;
+    box-shadow: var(--shadow-md);
+    cursor: pointer;
+}
+
+.add-btn:hover {
+    background: var(--primary-dark);
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    overflow-y: scroll;
+    z-index: 200;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    width: 90%;
+    height: 100vh;
+    max-width: 400px;
+    overflow-y: scroll;
+    box-shadow: var(--shadow-md);
+}
+
+.modal-content h2 {
+    margin-bottom: 20px;
+    color: var(--text-primary);
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--text-secondary);
+}
+
+.form-group input, .form-group select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--text-secondary);
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.save-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.cancel-btn {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.texte {
+    font-size: 1rem;
+    text-transform: uppercase;
+    color: gray;
+    font-weight: 900;
+    text-align: center;
+}
+    </style>
+</head>
+<body>
+    <header>
+        <button type="button" id="back-btn"><i class="fas fa-arrow-left"></i></button>
+        <div class="header-title"> SSEANCES </div>
+        <button type="button" id="logout-btn"><i class="fas fa-sign-out-alt"></i></button>
+    </header>
+
+    <div class="container">
+        <div class="search-container">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Rechercher une séance..." id="searchInput">
+            </div>
+        </div>
+
+        <div id="seances-list" class="seances-list">
+            <!-- Les séances seront générées dynamiquement ici -->
+        </div>
+
+        <button class="add-btn" id="add-seance-btn"><i class="fas fa-plus"></i></button>
+    </div>
+
+    <!-- Modal pour créer/éditer une séance -->
+    <div class="modal" id="seance-modal">
+        <div class="modal-content">
+            <h2 id="modal-title">Nouvelle Séance</h2>
+            <form id="seance-form">
+                <div class="form-group">
+                    <label for="course">Cours</label>
+                    <input type="text" id="course" name="course" required>
+                </div>
+                <div class="form-group">
+                    <label for="professor">Professeur</label>
+                    <input type="text" id="professor" name="professor" required>
+                </div>
+                <div class="form-group">
+                    <label for="location">Lieu</label>
+                    <input type="text" id="location" name="location" required>
+                </div>
+                <div class="form-group">
+                    <label for="date">Date (JJ/MM/AAAA)</label>
+                    <input type="text" id="date" name="date" placeholder="ex: 01/04/2025" required>
+                </div>
+                <div class="form-group">
+                    <label for="startTime">Heure de début</label>
+                    <input type="text" id="startTime" name="startTime" placeholder="ex: 7h30" required>
+                </div>
+                <div class="form-group">
+                    <label for="endTime">Heure de fin</label>
+                    <input type="text" id="endTime" name="endTime" placeholder="ex: 9h30" required>
+                </div>
+                <div class="form-group">
+                    <label for="niveau">filiere</label>
+                    <input type="text" id="filiere" name="filiere" placeholder="ex: informatique" required>
+                </div>
+                <div class="form-group">
+                    <label for="niveau">niveau</label>
+                    <input type="number" id="niveau" name="niveau" placeholder="ex: 2" required>
+                </div>
+
+                <input type="hidden" id="seance-id" name="id">
+                <div class="modal-actions">
+                    <button type="submit" class="save-btn">Enregistrer</button>
+                    <button type="button" class="cancel-btn" id="cancel-btn">Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <p id="p"></p>
+    <script>
+
+        document.addEventListener('DOMContentLoaded', () => {
+    const seancesList = document.getElementById('seances-list');
+    const searchInput = document.getElementById('searchInput');
+    const addSeanceBtn = document.getElementById('add-seance-btn');
+    const seanceModal = document.getElementById('seance-modal');
+    const seanceForm = document.getElementById('seance-form');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const modalTitle = document.getElementById('modal-title');
+    const logoutBtn = document.getElementById('logout-btn');
+    let seancesData = [];
+
+    // Récupérer les séances depuis l'API (à implémenter côté serveur)
+    async function fetchSeances() {
+        try {
+            const response = await fetch(`http://localhost:3001/seance`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+            });
+            const data = await response.json();
+            if (data.success) {
+                seancesData = data.seances;
+                renderSeances(seancesData);
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+            seancesList.innerHTML = '<p>Erreur lors du chargement des séances.</p>';
+        }
+    }
+
+    // Afficher les séances
+    function renderSeances(data) {
+        seancesList.innerHTML = '';
+        data.forEach(seance => {
+            const seanceItem = document.createElement('div');
+            seanceItem.className = 'seance-item';
+            seanceItem.innerHTML = `
+                <div class="seance-info">
+                    <strong>${seance.cours}</strong> ${seance.debut} à ${seance.fin}<br>
+                    ${seance.enseignant} - ${seance.lieu} <br> (Créé par: ${seance.create_by}  <br> ${seance.jour})
+                </div>
+                <div class="seance-actions">
+                    <button onclick="editSeance('${seance.id}')">Éditer</button>
+                    <button onclick="deleteSeance('${seance.id}')">Supprimer</button>
+                </div>
+            `;
+            seancesList.appendChild(seanceItem);
+        });
+    }
+
+    // Recherche
+    searchInput.addEventListener('input', () => {
+        const searchTerm = searchInput.value.toLowerCase();
+        const filteredData = seancesData.filter(seance =>
+            seance.course.toLowerCase().includes(searchTerm) ||
+            seance.professor.toLowerCase().includes(searchTerm) ||
+            seance.location.toLowerCase().includes(searchTerm)
+        );
+        renderSeances(filteredData);
+    });
+
+    // Ouvrir le modal pour ajouter une séance
+    addSeanceBtn.addEventListener('click', () => {
+        modalTitle.textContent = 'Nouvelle Séance';
+        seanceForm.reset();
+        seanceModal.style.display = 'flex';
+    });
+
+    // Annuler le modal
+    cancelBtn.addEventListener('click', () => {
+        seanceModal.style.display = 'none';
+    });
+
+    // Soumettre le formulaire (créer ou éditer)
+    seanceForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const seanceData = {
+            cours: document.getElementById('course').value,
+            enseignant: document.getElementById('professor').value,
+            lieu: document.getElementById('location').value,
+            jour: document.getElementById('date').value,
+            debut: document.getElementById('startTime').value,
+            fin: document.getElementById('endTime').value,
+            filiere:document.getElementById('filiere').value,
+            niveau:document.getElementById('niveau').value,
+            create_by: admin_nom // Remplace create_by par le nom de l'utilisateur
+        };
+        const seanceId = document.getElementById('seance-id').value;
+
+        if (seanceId) {
+            // Éditer une séance (à implémenter côté serveur)
+            await updateSeance(seanceId, seanceData);
+        } else {
+            // Créer une nouvelle séance
+            await createSeance([seanceData]); // L'API attend un tableau
+        }
+        seanceModal.style.display = 'none';
+        fetchSeances();
+    });
+
+    // Créer une séance via l'API
+    async function createSeance(data) {
+        try {
+            const response = await fetch('http://localhost:3001/create_seance2', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            if (!result.success) {
+                alert(result.message);
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+            alert('Erreur lors de la création de la séance.');
+        }
+    }
+
+    // Éditer une séance
+    window.editSeance = (id) => {
+        const seance = seancesData.find(s => s.id === id);
+        if (seance) {
+            modalTitle.textContent = 'Éditer la Séance';
+            document.getElementById('course').value = seance.cours;
+            document.getElementById('professor').value = seance.enseignant;
+            document.getElementById('location').value = seance.lieu;
+            document.getElementById('date').value = seance.jour;
+            document.getElementById('startTime').value = seance.debut;
+            document.getElementById('endTime').value = seance.fin;
+             document.getElementById('filiere').value = seance.filiere;
+             document.getElementById('niveau').value = seance.niveau;
+             document.getElementById('create_by').value = seance.create_by
+            document.getElementById('seance-id').value = seance.id;
+            seanceModal.style.display = 'flex';
+        }
+    };
+
+    // Mettre à jour une séance (à implémenter côté serveur)
+    async function updateSeance(id, data) {
+        try {
+            const response = await fetch(`http://localhost:3001/update_seance/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            if (!result.success) {
+                alert(result.message);
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+            alert('Erreur lors de la mise à jour de la séance.');
+        }
+    }
+
+    // Supprimer une séance (à implémenter côté serveur)
+    window.deleteSeance = async (id) => {
+        if (confirm('Voulez-vous vraiment supprimer cette séance ?')) {
+            try {
+                const response = await fetch(`http://localhost:3001/delete_seance/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+                });
+                const result = await response.json();
+                if (result.success) {
+                    fetchSeances();
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                alert('Erreur lors de la suppression.');
+            }
+        }
+    };
+
+    // Déconnexion
+    logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminUsername');
+        window.location.href = '/login_admin';
+    });
+
+    // Initialisation
+    fetchSeances();
+});
+    </script>
+</body>
+</html>

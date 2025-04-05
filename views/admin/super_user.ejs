@@ -243,7 +243,7 @@
     // Récupérer les séances depuis l'API (à implémenter côté serveur)
     async function fetchSeances() {
         try {
-            const response = await fetch(`https://schedule-f4cv.onrender.com//seance`, {
+            const response = await fetch(`https://schedule-f4cv.onrender.com/seance`, {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
             });
             const data = await response.json();
@@ -330,7 +330,7 @@
     // Créer une séance via l'API
     async function createSeance(data) {
         try {
-            const response = await fetch('https://schedule-f4cv.onrender.com//create_seance2', {
+            const response = await fetch('https://schedule-f4cv.onrender.com/create_seance2', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -370,7 +370,7 @@
     // Mettre à jour une séance (à implémenter côté serveur)
     async function updateSeance(id, data) {
         try {
-            const response = await fetch(`https://schedule-f4cv.onrender.com//update_seance/${id}`, {
+            const response = await fetch(`https://schedule-f4cv.onrender.com/update_seance/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -392,7 +392,7 @@
     window.deleteSeance = async (id) => {
         if (confirm('Voulez-vous vraiment supprimer cette séance ?')) {
             try {
-                const response = await fetch(`https://schedule-f4cv.onrender.com//delete_seance/${id}`, {
+                const response = await fetch(`https://schedule-f4cv.onrender.com/delete_seance/${id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
                 });

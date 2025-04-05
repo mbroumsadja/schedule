@@ -1,4 +1,4 @@
-### README - Schedule : Votre compagnon étudiant
+### Schedule : Votre compagnon étudiant
 
 #### Présentation
 **Schedule** est une application web conçue pour simplifier la vie des étudiants en leur offrant un accès rapide et organisé à leurs emplois du temps et informations académiques. Voici ce que propose l'application :

@@ -75,7 +75,3 @@ Pour plus d’infos ou pour contribuer, contactez-nous sur [GitHub](lien_vers_de
 - Frontend : HTML, CSS, JavaScript
 - Backend : Node.js (API REST)
 - Design : Responsive avec FontAwesome
-
-#### Captures d’écran
-![Page des Cours](lien_vers_image.png)
-```

@@ -47,7 +47,9 @@
                 // Rediriger vers la page principale
                 setTimeout(() => window.location.href = '/', 1000);
             } else {
-                message.textContent = data.message; // Ex. : "❌ Ce compte n'existe pas"
+                message.textContent = data.message;
+                message.style.color = "red"
+                message.style.fontSize = "17px" // Ex. : "❌ Ce compte n'existe pas"
             }
         } catch (error) {
             message.textContent = 'Erreur réseau. Veuillez réessayer.';

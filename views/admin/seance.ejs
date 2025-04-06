@@ -219,7 +219,7 @@
                 </div>
                 <div class="form-group">
                     <label for="niveau">create_by</label>
-                    <input type="text" id="create_by" name="create_by" placeholder="ex: mbroumsadja" required>
+                    <input type="text" id="create_by" name="create_by" placeholder="ex: mbroumsadja">
                 </div>
                 <input type="hidden" id="seance-id" name="id">
                 <div class="modal-actions">
@@ -336,7 +336,7 @@ function getCookie() {
             niveau:document.getElementById('niveau').value,
             create_by: admin_nom // Remplace create_by par le nom de l'utilisateur
         };
-        console.log(seanceData)
+
         const seanceId = document.getElementById('seance-id').value;
 
         if (seanceId) {
